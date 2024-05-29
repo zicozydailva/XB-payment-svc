@@ -1,6 +1,6 @@
 import { IsNumber } from 'class-validator';
 
-export class CreateUserDto {
+export class DeleteUserDto {
   @IsNumber()
   id: number;
 }
