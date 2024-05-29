@@ -3,7 +3,7 @@ import { User } from '../../user/entities/user.entity';
 import { BaseTable } from 'src/base';
 
 @Entity()
-export class Airtime extends BaseTable {
+export class Data extends BaseTable {
   @Column()
   amount: number;
 
@@ -13,6 +13,6 @@ export class Airtime extends BaseTable {
   @Column()
   status: string; // e.g., 'completed', 'pending', 'failed'
 
-  @ManyToOne(() => User, (user) => user.airtimeRecords)
+  @ManyToOne(() => User, (user) => user.dataRecords)
   user: User;
 }

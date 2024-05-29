@@ -7,6 +7,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ElectricityModule } from './modules/electricity/electricity.module';
 import { AirtimeModule } from './modules/airtime/airtime.module';
 import { DataModule } from './modules/data/data.module';
+import { Airtime } from './modules/airtime/entities/airtime.entity';
+import { Data } from './modules/data/entities/data.entity';
+import { Electricity } from './modules/electricity/entities/electricity.entity';
 
 @Module({
   imports: [
@@ -23,7 +26,7 @@ import { DataModule } from './modules/data/data.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [User],
+        entities: [User, Airtime, Data, Electricity],
         synchronize: true, // Be careful with this option in production
       }),
     }),
