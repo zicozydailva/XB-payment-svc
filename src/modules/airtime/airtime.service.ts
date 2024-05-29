@@ -1,9 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../user/entities/user.entity';
+import { Repository } from 'typeorm';
+import { ErrorHelper } from 'src/helpers';
+import { Airtime } from './entities/airtime.entity';
+import { PaymentMethod, Status } from 'src/enums/payment.enum';
 
 @Injectable()
 export class AirtimeService {
   private readonly logger = new Logger(AirtimeService.name);
   private balances: { [key: string]: number } = {};
+
+  constructor(
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Airtime)
+    private readonly airtimeRepository: Repository<Airtime>,
+  ) {}
 
   // Method to check the balance of a user
   checkBalance(userId: string): number {
@@ -12,37 +24,59 @@ export class AirtimeService {
   }
 
   // Method to purchase airtime for a user
-  purchaseAirtime(userId: string, amount: number): number {
+  async purchaseAirtime(userId: number, amount: number) {
     this.logger.log(`Purchasing airtime of ${amount} for user: ${userId}`);
-    if (!this.balances[userId]) {
-      this.balances[userId] = 0;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      ErrorHelper.BadRequestException('User not found');
     }
-    this.balances[userId] += amount;
-    return this.balances[userId];
+
+    const airtime = this.airtimeRepository.create({
+      amount,
+      purchasedAt: new Date(),
+      paymentMethod: PaymentMethod.CREDIT_CARD, // to be modifed
+      status: Status.PENDING, // to be modifed
+      user,
+    });
+
+    await this.airtimeRepository.save(airtime);
+
+    user.airtimeBalance = (user.airtimeBalance || 0) + amount;
+
+    await this.userRepository.save(user);
+
+    return {
+      topup_value: amount,
+      current_balance: user.airtimeBalance,
+      status: Status.COMPLETED,
+    };
   }
 
-  // Method to interact with an external API to purchase airtime (mock implementation)
-  async purchaseAirtimeFromProvider(
-    userId: string,
+  private async purchaseAirtimeFromProvider(
+    userId: number,
     amount: number,
   ): Promise<boolean> {
     this.logger.log(
       `Purchasing airtime of ${amount} from provider for user: ${userId}`,
     );
+
     // In a real-world scenario, this might involve an HTTP call to an external API
     return Promise.resolve(true); // Mock response
   }
 
-  // Method to handle the full airtime purchase process
-  async handleAirtimePurchase(userId: string, amount: number): Promise<number> {
+  async handleAirtimePurchase(userId: number, amount: number) {
     const purchaseSuccessful = await this.purchaseAirtimeFromProvider(
       userId,
       amount,
     );
     if (purchaseSuccessful) {
-      return this.purchaseAirtime(userId, amount);
+      return await this.purchaseAirtime(userId, amount);
     } else {
-      throw new Error('Airtime purchase from provider failed');
+      ErrorHelper.BadRequestException('Airtime purchase from provider failed');
     }
   }
 }

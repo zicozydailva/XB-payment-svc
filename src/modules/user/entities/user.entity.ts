@@ -10,11 +10,9 @@ export class User extends BaseTable {
     type: 'int',
     nullable: false,
     unique: true,
+    default: 0,
   })
   user_id: number;
-
-  // @PrimaryGeneratedColumn()
-  // id: number;
 
   @Column()
   firstName: string;
@@ -24,6 +22,9 @@ export class User extends BaseTable {
 
   @Column()
   email: string;
+
+  @Column()
+  airtimeBalance: number;
 
   @OneToMany(() => Airtime, (airtime) => airtime.user)
   airtimeRecords: Airtime[];

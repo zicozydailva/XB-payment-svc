@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { BaseTable } from 'src/base';
+import { PaymentMethod, Status } from 'src/enums/payment.enum';
 
 @Entity()
 export class Airtime extends BaseTable {
@@ -8,10 +9,19 @@ export class Airtime extends BaseTable {
   amount: number;
 
   @Column()
-  paymentMethod: string; // e.g., 'credit card', 'debit card', 'paypal'
+  purchasedAt: Date;
 
-  @Column()
-  status: string; // e.g., 'completed', 'pending', 'failed'
+  @Column({
+    type: 'enum',
+    enum: PaymentMethod,
+  })
+  paymentMethod: PaymentMethod;
+
+  @Column({
+    type: 'enum',
+    enum: Status,
+  })
+  status: Status;
 
   @ManyToOne(() => User, (user) => user.airtimeRecords)
   user: User;

@@ -17,7 +17,7 @@ export class UserService {
     this.logger.log(`Creating user ${JSON.stringify(createUserDto)}`);
     const exist = await this.userRepository.findOne({
       where: {
-        id: createUserDto.id,
+        id: createUserDto.user_id,
       },
       withDeleted: true,
     });

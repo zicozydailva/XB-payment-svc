@@ -31,17 +31,17 @@ export class AirtimeController {
   @HttpCode(HttpStatus.OK)
   @Post('purchase')
   async purchaseAirtime(
-    @Query('userId') userId: string,
+    @Query('userId') userId: number,
     @Query('amount') amount: number,
   ) {
-    const res = this.airtimeService.handleAirtimePurchase(
+    const res = await this.airtimeService.handleAirtimePurchase(
       userId,
       Number(amount),
     );
 
     return {
       data: res,
-      message: 'Balance Checked successfully',
+      message: 'Airtime Purchased successfully',
       status: HttpStatus.OK,
     };
   }
