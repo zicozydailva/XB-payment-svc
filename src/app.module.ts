@@ -4,6 +4,9 @@ import { UserModule } from './modules/user/user.module';
 import { User } from './modules/user/entities/user.entity';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ElectricityModule } from './modules/electricity/electricity.module';
+import { AirtimeModule } from './modules/airtime/airtime.module';
+import { DataModule } from './modules/data/data.module';
 
 @Module({
   imports: [
@@ -25,6 +28,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
     UserModule,
+    ElectricityModule,
+    AirtimeModule,
+    DataModule,
   ],
 })
 export class AppModule {}
