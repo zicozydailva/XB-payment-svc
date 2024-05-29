@@ -1,34 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
+
 import { DataService } from './data.service';
-import { CreateDatumDto } from './dto/create-datum.dto';
-import { UpdateDatumDto } from './dto/update-datum.dto';
 
 @Controller('data')
 export class DataController {
   constructor(private readonly dataService: DataService) {}
 
-  @Post()
-  create(@Body() createDatumDto: CreateDatumDto) {
-    return this.dataService.create(createDatumDto);
+  @Get('balance')
+  checkDataBalance(@Query('userId') userId: string): number {
+    return this.dataService.checkDataBalance(userId);
   }
 
-  @Get()
-  findAll() {
-    return this.dataService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.dataService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDatumDto: UpdateDatumDto) {
-    return this.dataService.update(+id, updateDatumDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.dataService.remove(+id);
+  @Post('purchase')
+  async purchaseData(
+    @Query('userId') userId: string,
+    @Query('amount') amount: number,
+  ): Promise<number> {
+    return this.dataService.handleDataPurchase(userId, Number(amount));
   }
 }
