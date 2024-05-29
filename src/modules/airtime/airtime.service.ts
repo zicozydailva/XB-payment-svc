@@ -1,26 +1,48 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAirtimeDto } from './dto/create-airtime.dto';
-import { UpdateAirtimeDto } from './dto/update-airtime.dto';
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class AirtimeService {
-  create(createAirtimeDto: CreateAirtimeDto) {
-    return 'This action adds a new airtime';
+  private readonly logger = new Logger(AirtimeService.name);
+  private balances: { [key: string]: number } = {};
+
+  // Method to check the balance of a user
+  checkBalance(userId: string): number {
+    this.logger.log(`Checking balance for user: ${userId}`);
+    return this.balances[userId] || 0;
   }
 
-  findAll() {
-    return `This action returns all airtime`;
+  // Method to purchase airtime for a user
+  purchaseAirtime(userId: string, amount: number): number {
+    this.logger.log(`Purchasing airtime of ${amount} for user: ${userId}`);
+    if (!this.balances[userId]) {
+      this.balances[userId] = 0;
+    }
+    this.balances[userId] += amount;
+    return this.balances[userId];
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} airtime`;
+  // Method to interact with an external API to purchase airtime (mock implementation)
+  async purchaseAirtimeFromProvider(
+    userId: string,
+    amount: number,
+  ): Promise<boolean> {
+    this.logger.log(
+      `Purchasing airtime of ${amount} from provider for user: ${userId}`,
+    );
+    // In a real-world scenario, this might involve an HTTP call to an external API
+    return Promise.resolve(true); // Mock response
   }
 
-  update(id: number, updateAirtimeDto: UpdateAirtimeDto) {
-    return `This action updates a #${id} airtime`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} airtime`;
+  // Method to handle the full airtime purchase process
+  async handleAirtimePurchase(userId: string, amount: number): Promise<number> {
+    const purchaseSuccessful = await this.purchaseAirtimeFromProvider(
+      userId,
+      amount,
+    );
+    if (purchaseSuccessful) {
+      return this.purchaseAirtime(userId, amount);
+    } else {
+      throw new Error('Airtime purchase from provider failed');
+    }
   }
 }

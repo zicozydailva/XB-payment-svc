@@ -1,34 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { AirtimeService } from './airtime.service';
-import { CreateAirtimeDto } from './dto/create-airtime.dto';
-import { UpdateAirtimeDto } from './dto/update-airtime.dto';
 
 @Controller('airtime')
 export class AirtimeController {
   constructor(private readonly airtimeService: AirtimeService) {}
 
-  @Post()
-  create(@Body() createAirtimeDto: CreateAirtimeDto) {
-    return this.airtimeService.create(createAirtimeDto);
+  @Get('balance')
+  checkBalance(@Query('userId') userId: string): number {
+    return this.airtimeService.checkBalance(userId);
   }
 
-  @Get()
-  findAll() {
-    return this.airtimeService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.airtimeService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAirtimeDto: UpdateAirtimeDto) {
-    return this.airtimeService.update(+id, updateAirtimeDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.airtimeService.remove(+id);
+  @Post('purchase')
+  async purchaseAirtime(
+    @Query('userId') userId: string,
+    @Query('amount') amount: number,
+  ): Promise<number> {
+    return this.airtimeService.handleAirtimePurchase(userId, Number(amount));
   }
 }
