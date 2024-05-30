@@ -1,21 +1,52 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { DataService } from './data.service';
+import { AuthGuard } from 'src/common/guards';
+import { User } from 'src/common/decorators';
+import { IUser } from 'src/interfaces/user.interface';
+import { IResponse } from 'src/interfaces';
 
 @Controller('data')
 export class DataController {
   constructor(private readonly dataService: DataService) {}
 
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Get('balance')
-  checkDataBalance(@Query('userId') userId: string): number {
-    return this.dataService.checkDataBalance(userId);
+  async checkDataBalance(@User() user: IUser): Promise<IResponse<any>> {
+    const res = await this.dataService.checkDataBalance(user.id);
+
+    return {
+      data: res,
+      message: 'Data Balance Checked successfully',
+      status: HttpStatus.OK,
+    };
   }
 
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('purchase')
   async purchaseData(
-    @Query('userId') userId: string,
+    @User() user: IUser,
     @Query('amount') amount: number,
-  ): Promise<number> {
-    return this.dataService.handleDataPurchase(userId, Number(amount));
+  ): Promise<IResponse<any>> {
+    const res = await this.dataService.handleDataPurchase(
+      user.id,
+      Number(amount),
+    );
+
+    return {
+      data: res,
+      message: 'Data Balance Checked successfully',
+      status: HttpStatus.OK,
+    };
   }
 }

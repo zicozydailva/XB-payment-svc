@@ -1,29 +1,71 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ErrorHelper } from 'src/helpers';
+import { Repository } from 'typeorm';
+import { User } from '../user/entities/user.entity';
+import { Data } from './entities/data.entity';
+import { PaymentMethod, Status } from 'src/enums/payment.enum';
 
 @Injectable()
 export class DataService {
   private readonly logger = new Logger(DataService.name);
-  private dataBalances: { [key: string]: number } = {};
+  private dataBalances: { [key: number]: number } = {};
+  constructor(
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Data)
+    private readonly dataRepository: Repository<Data>,
+  ) {}
 
   // Method to check the data balance of a user
-  checkDataBalance(userId: string): number {
+  async checkDataBalance(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      ErrorHelper.BadRequestException('User not found');
+    }
     this.logger.log(`Checking data balance for user: ${userId}`);
-    return this.dataBalances[userId] || 0;
+
+    return { data_balance: user.dataBalance + 'GB' };
   }
 
   // Method to purchase data for a user
-  purchaseData(userId: string, amount: number): number {
+  async purchaseData(userId: number, amount: number) {
     this.logger.log(`Purchasing data of ${amount}MB for user: ${userId}`);
-    if (!this.dataBalances[userId]) {
-      this.dataBalances[userId] = 0;
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      ErrorHelper.BadRequestException('User not found');
     }
-    this.dataBalances[userId] += amount;
-    return this.dataBalances[userId];
+
+    console.log(user);
+    const data = this.dataRepository.create({
+      amount,
+      purchasedAt: new Date(),
+      paymentMethod: PaymentMethod.DEBIT_CARD, // to be modifed
+      status: Status.PENDING, // to be modifed
+      user,
+    });
+
+    await this.dataRepository.save(data);
+
+    user.dataBalance = (user.dataBalance || 0) + amount;
+
+    await this.userRepository.save(user);
+
+    return {
+      topup_value: amount,
+      current_data_balance: user.dataBalance + 'GB',
+      status: Status.COMPLETED,
+    };
   }
 
-  // Method to interact with an external API to purchase data (mock implementation)
   async purchaseDataFromProvider(
-    userId: string,
+    userId: number,
     amount: number,
   ): Promise<boolean> {
     this.logger.log(
@@ -33,16 +75,16 @@ export class DataService {
     return Promise.resolve(true); // Mock response
   }
 
-  // Method to handle the full data purchase process
-  async handleDataPurchase(userId: string, amount: number): Promise<number> {
+  async handleDataPurchase(userId: number, amount: number): Promise<any> {
     const purchaseSuccessful = await this.purchaseDataFromProvider(
       userId,
       amount,
     );
+
     if (purchaseSuccessful) {
-      return this.purchaseData(userId, amount);
+      return await this.purchaseData(userId, amount);
     } else {
-      throw new Error('Data purchase from provider failed');
+      ErrorHelper.BadRequestException('Data purchase from provider failed');
     }
   }
 }

@@ -29,6 +29,9 @@ export class User extends BaseTable {
   @OneToMany(() => Airtime, (airtime) => airtime.user)
   airtimeRecords: Airtime[];
 
+  @Column()
+  dataBalance: number;
+
   @OneToMany(() => Data, (data) => data.user)
   dataRecords: Data[];
 

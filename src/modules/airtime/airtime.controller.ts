@@ -9,6 +9,8 @@ import {
 } from '@nestjs/common';
 import { AirtimeService } from './airtime.service';
 import { AuthGuard } from 'src/common/guards';
+import { User } from 'src/common/decorators';
+import { IUser } from 'src/interfaces/user.interface';
 
 @Controller('airtime')
 export class AirtimeController {
@@ -17,12 +19,12 @@ export class AirtimeController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('balance')
-  checkBalance(@Query('userId') userId: string) {
-    const res = this.airtimeService.checkBalance(userId);
+  async checkBalance(@User() user: IUser) {
+    const res = await this.airtimeService.checkBalance(user.id);
 
     return {
       data: res,
-      message: 'Balance Checked successfully',
+      message: 'Airtime Balance Checked successfully',
       status: HttpStatus.OK,
     };
   }
@@ -30,12 +32,9 @@ export class AirtimeController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('purchase')
-  async purchaseAirtime(
-    @Query('userId') userId: number,
-    @Query('amount') amount: number,
-  ) {
+  async purchaseAirtime(@User() user: IUser, @Query('amount') amount: number) {
     const res = await this.airtimeService.handleAirtimePurchase(
-      userId,
+      user.id,
       Number(amount),
     );
 

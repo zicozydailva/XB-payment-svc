@@ -20,7 +20,13 @@ async function bootstrap() {
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan('dev'));
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
   app.useGlobalInterceptors(new LoggerInterceptor());
 
   const KAFKA_BROKER = configService.get<string>('KAFKA_BROKER');

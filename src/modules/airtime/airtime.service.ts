@@ -18,9 +18,17 @@ export class AirtimeService {
   ) {}
 
   // Method to check the balance of a user
-  checkBalance(userId: string): number {
+  async checkBalance(userId: number): Promise<number> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      ErrorHelper.BadRequestException('User not found');
+    }
     this.logger.log(`Checking balance for user: ${userId}`);
-    return this.balances[userId] || 0;
+
+    return user.airtimeBalance;
   }
 
   // Method to purchase airtime for a user
